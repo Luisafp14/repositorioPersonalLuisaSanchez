@@ -1,2 +1,0 @@
-# repositorioPersonalLuisaSanchez
-Ejercicios en python
