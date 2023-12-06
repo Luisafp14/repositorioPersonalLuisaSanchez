@@ -1,0 +1,134 @@
+{% extends 'index/index2.html' %}
+{% load static %}
+{% load custom_filters %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/5.3.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.12.1/css/all.css" crossorigin="anonymous">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'css/servicios.css' %}?v=2">
+    <title>Servicios</title>
+</head>
+
+<body>
+
+    <div class="py-1 d-flex justify-content-center vh-100">
+        <div class="row">
+            <h1>Servicios Sugeridos</h1>
+            <fieldset id="fi1">
+                <ul>
+                    {% for servicio in servicios %}
+                    <li>
+                        <strong>{{ servicio.name }}</strong>
+                        <p>{{ servicio.description }}</p>
+                        <p>Precio: ${{ servicio.price }}</p>
+
+                        <form method="post" action="">
+                            {% csrf_token %}
+                            <input type="hidden" name="servicio_id" value="{{ servicio.id }}">
+                            <button type="submit">Añadir al Carrito</button>
+                        </form>
+
+                    </li>
+                    {% endfor %}
+                </ul>
+            </fieldset>
+
+            <h1>Todos los Servicios</h1>
+
+            <button type="button" id="btn-carrito">Carrito ({{ cantidad_en_carrito }})</button>
+
+            <div id="carrito-detalle" style="display: none;">
+                <h2>Detalles del Carrito</h2>
+                <ul>
+                    {% for servicio in carrito_detalles %}
+                    <li>
+                        <p>{{ servicio.name }} - Precio: ${{ servicio.price }}</p>
+                        <form method="post" action="{% url 'generar_factura' %}" id="factura-form">
+                            {% csrf_token %}
+                            {{ factura_form }}
+                            <button type="button" name="btn-factura" id="btn-factura">Generar Factura</button>
+                        </form>
+                    </li>
+                    {% endfor %}
+                    <br>
+                    <p>Precio Total: ${{ carrito_detalles|price_total }}</p>
+                    <br>
+                    <form method="post" action="/user/generar_factura/">
+                        <input type="hidden" name="csrfmiddlewaretoken"
+                            value="T0l1Up24gVq70uOeEfNkNglgdt2dG2VnPIIB2bJVZgFFJzl8PC9eE3oh2lEEnP8z">
+                        <div>
+                            <label for="id_referencia">Referencia:</label>
+
+
+                            <ul class="errorlist">
+                                <li>Este campo es obligatorio.</li>
+                            </ul>
+                            <input type="text" name="referencia" maxlength="100" required="" aria-invalid="true"
+                                id="id_referencia">
+
+                        </div>
+
+                        <div>
+                            <label for="id_modo_pago">Modo pago:</label>
+
+
+                            <ul class="errorlist">
+                                <li>Este campo es obligatorio.</li>
+                            </ul>
+                            <input type="text" name="modo_pago" maxlength="50" required="" aria-invalid="true"
+                                id="id_modo_pago">
+
+
+
+                        </div>
+                        <button type="submit" name="btn-factura" id="btn-factura" href="/user/generar_factura/">Generar
+                            Factura</button>
+                    </form>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('btn-carrito').addEventListener('click', function () {
+            var carritoDetalle = document.getElementById('carrito-detalle');
+            carritoDetalle.style.display = carritoDetalle.style.display === 'none' ? 'block' : 'none';
+        });
+
+        document.getElementById('btn-factura').addEventListener('click', function () {
+            // Obtén el formulario y los datos del formulario
+            var formulario = document.getElementById('factura-form');
+            var formData = new FormData(formulario);
+
+            // Realiza una solicitud AJAX
+            var xhr = new XMLHttpRequest();
+            xhr.open(formulario.method, formulario.action, true);
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+            // Maneja la respuesta
+            xhr.onload = function () {
+                if (xhr.status >= 200 && xhr.status < 400) {
+                    // Éxito: la respuesta es un fragmento HTML que puedes insertar en la página
+                    var facturaDetalle = document.getElementById('factura-detalle');
+                    facturaDetalle.innerHTML = xhr.responseText;
+                    facturaDetalle.style.display = 'block';
+                } else {
+                    // Error: maneja el error según sea necesario
+                    console.error('Error al generar la factura');
+                }
+            };
+
+            // Envía los datos del formulario
+            xhr.send(formData);
+        });
+    </script>
+
+</body>
+
+</html>
+{% endblock %}
